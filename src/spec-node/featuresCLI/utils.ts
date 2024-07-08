@@ -57,7 +57,7 @@ export interface LaunchResult {
 
 // dev-container-features-test-lib
 export const testLibraryScript = `
-#!/bin/bash
+#!/bin/sh
 SCRIPT_FOLDER="$(cd "$(dirname $0)" && pwd)"
 USERNAME=\${1:-root}
 
@@ -65,7 +65,7 @@ if [ -z $HOME ]; then
     HOME="/root"
 fi
 
-FAILED=()
+FAILED=""
 
 echoStderr()
 {
@@ -75,17 +75,17 @@ echoStderr()
 check() {
     LABEL=$1
     shift
-    echo -e "\n"
-    echo -e "🔄 Testing '$LABEL'"
-    echo -e '\\033[37m'
+    printf "\n\n"
+    printf "🔄 Testing '$LABEL'\n"
+    printf '\\033[37m'
     if "$@"; then
-        echo -e "\n" 
+        printf "\n\n"
         echo "✅  Passed '$LABEL'!"
         return 0
     else
-        echo -e "\n"
+        printf "\n\n"
         echoStderr "❌ $LABEL check failed."
-        FAILED+=("$LABEL")
+        FAILED="$FAILED $LABEL"
         return 1
     fi
 }
@@ -93,8 +93,8 @@ check() {
 checkMultiple() {
     PASSED=0
     LABEL="$1"
-    echo -e "\n"
-    echo -e "🔄 Testing '$LABEL'."
+    printf "\n\n"
+    printf "🔄 Testing '$LABEL'.\n"
     shift; MINIMUMPASSED=$1
     shift; EXPRESSION="$1"
     while [ "$EXPRESSION" != "" ]; do
@@ -102,25 +102,25 @@ checkMultiple() {
         shift; EXPRESSION=$1
     done
     if [ $PASSED -ge $MINIMUMPASSED ]; then
-        echo -e "\n"
+        printf "\n\n"
         echo "✅ Passed!"
         return 0
     else
-        echo -e "\n"
+        printf "\n\n"
         echoStderr "❌ '$LABEL' check failed."
-        FAILED+=("$LABEL")
+        FAILED="$FAILED $LABEL"
         return 1
     fi
 }
 
 reportResults() {
-    if [ \${#FAILED[@]} -ne 0 ]; then
-        echo -e "\n"
-        echoStderr -e "💥  Failed tests: \${FAILED[@]}"
+    if [ -n "$FAILED" ]; then
+        printf "\n\n"
+        echoStderr "💥  Failed tests: **$FAILED**"
         exit 1
     else
-        echo -e "\n"
-        echo -e "Test Passed!"
+        printf "\n\n"
+        printf "Test Passed!\n"
         exit 0
     fi
 }`;
